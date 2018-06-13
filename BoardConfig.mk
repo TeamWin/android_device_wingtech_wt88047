@@ -31,14 +31,12 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno306
 BOARD_KERNEL_BASE := 0x80000000
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom msm_rtb.filter=0x237 ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci lpm_levels.sleep_disabled=1
 BOARD_KERNEL_PAGESIZE := 2048
-BOARD_MKBOOTIMG_ARGS :=  --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --dt $(DEVICE_PATH)/dt.img
-BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/mkbootimg.mk
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/kernel
+BOARD_MKBOOTIMG_ARGS :=  --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --dt $(DEVICE_PATH)/prebuilt/dt.img
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 
 BOARD_KERNEL_CMDLINE += \
     sched_enable_hmp=1 \
-    phy-msm-usb.floated_charger_enable=1 \
-    androidboot.selinux=permissive
+    phy-msm-usb.floated_charger_enable=1
 
 # Filesystem
 BOARD_FLASH_BLOCK_SIZE := 131072
@@ -57,21 +55,11 @@ TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBA_8888"
 TARGET_RECOVERY_QCOM_RTC_FIX := true
 RECOVERY_GRAPHICS_USE_LINELENGTH := true
-RECOVERY_SDCARD_ON_DATA := true
-
-# TWRP specific build flags
-TW_THEME := portrait_hdpi
-TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
-TW_DEFAULT_BRIGHTNESS := 120
-TW_EXCLUDE_SUPERSU := true
-TW_INCLUDE_NTFS_3G := true
-TW_IGNORE_MISC_WIPE_DATA := true
-TW_NEW_ION_HEAP := true
 
 # Encryption support
 TW_INCLUDE_CRYPTO := true
 TARGET_HW_DISK_ENCRYPTION := true
 TARGET_KEYMASTER_WAIT_FOR_QSEE := true
 
-# Asian region languages
-TW_EXTRA_LANGUAGES := true
+# TWRP specific build flags
+TW_THEME := portrait_hdpi
