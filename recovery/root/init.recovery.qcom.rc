@@ -1,98 +1,10 @@
-on firmware_mounts_complete
-    rm /dev/.booting
-
-on init
-    chmod 0660 /dev/qseecom
-    chown system drmrpc /dev/qseecom
-    chmod 0664 /dev/ion
-    chown system system /dev/ion
-
-on late-init
-    # Remove a file to wake up anything waiting for firmware.
-    trigger firmware_mounts_complete
-
-    trigger boot
-
-on boot
-    # Adaptive LMK
-    write /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk 1
-    write /sys/module/lowmemorykiller/parameters/vmpressure_file_min 53059
-
-    write /sys/module/lpm_levels/parameters/sleep_disabled 0
-
-    # HMP scheduler load tracking settings
-    write /proc/sys/kernel/sched_window_stats_policy 3
-    write /proc/sys/kernel/sched_ravg_hist_size 3
-
-    # HMP Task packing settings for 8916
-    write /proc/sys/kernel/sched_small_task 20
-    write /proc/sys/kernel/sched_mostly_idle_load 30
-    write /proc/sys/kernel/sched_mostly_idle_nr_run 3
-
-    # disable thermal core_control to update interactive governor settings
-    write /sys/module/msm_thermal/core_control/enabled 0
-
-    # enable governor
-    write /sys/devices/system/cpu/cpu0/online 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "interactive"
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 800000
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1152000
-    # enable thermal core_control now
-    write /sys/module/msm_thermal/core_control/enabled 1
-
-    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay "25000 1094400:50000"
-    write /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load 90
-    write /sys/devices/system/cpu/cpufreq/interactive/timer_rate 30000
-    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 998400
-    write /sys/devices/system/cpu/cpufreq/interactive/io_is_busy 0
-    write /sys/devices/system/cpu/cpufreq/interactive/max_freq_hysteresis 50000
-    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "1 800000:85 998400:90 1094400:80"
-    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 50000
-    write /sys/devices/system/cpu/cpufreq/interactive/max_freq_hysteresis 50000
-
-    # bring all CPUs online
-    write /sys/devices/system/cpu/cpu1/online 1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-
-    chown root system /sys/devices/system/cpu/cpu1/online
-    chown root system /sys/devices/system/cpu/cpu2/online
-    chown root system /sys/devices/system/cpu/cpu3/online
-    chmod 664 /sys/devices/system/cpu/cpu1/online
-    chmod 664 /sys/devices/system/cpu/cpu2/online
-    chmod 664 /sys/devices/system/cpu/cpu3/online
-
-    write /sys/module/cpu_boost/parameters/boost_ms 20
-    write /sys/module/cpu_boost/parameters/sync_threshold 1094400
-    write /sys/module/cpu_boost/parameters/input_boost_freq 800000
-    write /sys/module/cpu_boost/parameters/input_boost_ms 40
-
-    setprop recovery.perf.mode 0
-
-service qseecomd /sbin/qseecomd
-    class core
-    user root
-    group root system drmrpc
-    seclabel u:r:recovery:s0
+# separate copy needed to use /sbin/linker instead of /system/bin/linker
+service sbinqseecomd /sbin/qseecomd
+    oneshot
     disabled
+    user root
+    group root
+    seclabel u:r:recovery:s0
 
 on property:ro.crypto.state=encrypted
-    start qseecomd
-
-on property:recovery.perf.mode=1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-
-on property:recovery.perf.mode=0
-    write /sys/devices/system/cpu/cpu2/online 0
-    write /sys/devices/system/cpu/cpu3/online 0
-
-# used only for bringing up decrypt and keeping it around for future ref
-service logd /system/bin/logd
-    disabled
-    class core
-    socket logd stream 0666 logd logd
-    socket logdr seqpacket 0666 logd logd
-    socket logdw dgram 0222 logd logd
-    group root system
-    writepid /dev/cpuset/system-background/tasks
+    start sbinqseecomd

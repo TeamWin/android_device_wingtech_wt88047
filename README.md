@@ -16,7 +16,7 @@ To build:
 ```sh
 . build/envsetup.sh
 lunch omni_wt88047-eng
-mka recoveryimage
+m recoveryimage
 ```
 
 Kernel sources are available at: https://github.com/LineageOS/android_kernel_wingtech_msm8916
